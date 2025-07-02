@@ -24,22 +24,16 @@ jobs:
           node-version: '22.x' # Ensure this matches your desired Node.js version
 
       - name: npm install and build
-        # Run npm commands from the root of the repository.
-        # The 'package.json' must be in the 'toDoList' subfolder.
-        # We will adjust the zip step to handle this.
+        # Run npm commands within the 'toDoList' subdirectory where package.json is located.
         run: |
-          npm install --prefix toDoList # Install dependencies within toDoList
-          npm run build --if-present --prefix toDoList # Run build within toDoList
-        # Removed working-directory: toDoList from here as --prefix handles it
+          npm install
+          npm run build --if-present
+        working-directory: toDoList # <--- Set working directory for npm commands
 
       - name: Zip artifact for deployment
-        # This zips the CONTENTS of the 'toDoList' directory, not the directory itself.
-        # This ensures that when unzipped on Azure, index.js is at /home/site/wwwroot.
-        run: |
-          cd toDoList # Change into the toDoList directory
-          zip -r ../release.zip ./* # Zip its contents to the parent directory
-        # The working-directory for this step is implicitly the repository root,
-        # but we use 'cd toDoList' to perform the zip from within the app's folder.
+        # This zips the entire 'toDoList' directory (which contains your app and node_modules).
+        # When unzipped, it will create a 'toDoList' folder at the root of the deployment.
+        run: zip -r release.zip toDoList
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -61,7 +55,7 @@ jobs:
           name: node-app
 
       - name: Unzip artifact for deployment
-        # This unzips the 'release.zip' into the current working directory of the deploy job (/home/site/wwwroot).
+        # This unzips 'release.zip', creating the 'toDoList' folder in the current directory (/home/site/wwwroot).
         run: unzip release.zip
 
       - name: Login to Azure
@@ -77,4 +71,5 @@ jobs:
         with:
           app-name: 'MavericsTodoList' # Ensure this matches your Azure Web App name
           slot-name: 'Production' # Or 'staging' if you use deployment slots
-          package: . # This tells the action to deploy the contents of the current directory
+          # Specify that the package to deploy is the 'toDoList' folder within the unzipped artifact.
+          package: 'toDoList' # <--- IMPORTANT CHANGE HERE
