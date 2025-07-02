@@ -27,15 +27,14 @@ jobs:
         run: |
           npm install
           npm run build --if-present
-          # The 'npm run test' command should be part of this same run block
-          # or a separate step with correct indentation and working directory.
-          # Assuming package.json is at the root, no working-directory needed here.
-          npm run test --if-present # Corrected indentation for this command
+          npm run test --if-present
+        working-directory: toDoList # <--- ADDED/CORRECTED THIS LINE
 
       - name: Zip artifact for deployment
-        # This zips all contents of the current working directory (repo root).
-        # Ensure your application's deployable files are at the root or correctly copied.
-        run: zip release.zip ./* -r
+        # This zips the contents of the 'toDoList' directory.
+        run: zip release.zip ./toDoList -r # <--- UPDATED ZIP COMMAND
+        # The working-directory for this step is still the repository root.
+        # We specify './toDoList' to ensure only the app's contents are zipped.
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -57,14 +56,11 @@ jobs:
           name: node-app
 
       - name: Unzip artifact for deployment
-        # This unzips the 'release.zip' into the current working directory of the deploy job.
         run: unzip release.zip
 
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          # These secrets must contain valid Service Principal credentials.
-          # The values for these secrets need to be updated in GitHub if they are invalid/expired.
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_851806C4AFE64676851F11720AE85CE8 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_09AB3D1A6F40482DAA4B975932A12754 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C28820D76A8948DBA705C27C20B9D210 }}
