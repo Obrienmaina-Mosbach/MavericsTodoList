@@ -1,13 +1,13 @@
 // index.js
 const express = require('express');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv'); // Keep dotenv for local development if you use a .env file
+// const dotenv = require('dotenv'); // REMOVED: Not needed in Azure, can cause conflicts
 const methodOverride = require('method-override');
 const path = require('path');
 const fs = require('fs'); // Keep for logger
 
 // Load environment variables from .env file (primarily for local development)
-dotenv.config();
+// dotenv.config(); // REMOVED: Not needed in Azure
 
 const Todo = require('./Models/todo'); // Import your Todo Mongoose model
 
@@ -46,8 +46,10 @@ function logger(req, res, next) {
 app.use(logger); // Apply the custom logger middleware to all incoming requests
 
 // --- MongoDB Connection ---
+// Log the MONGO_URI to debug its value in Azure environment
+console.log('MONGO_URI from environment:', process.env.MONGO_URI);
+
 // Connect to MongoDB using the URI from environment variables.
-// Removed the '|| mongodb://localhost:27017/todoApp' fallback.
 // On Azure, process.env.MONGO_URI will be set from Application Settings.
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB connected successfully!'))
