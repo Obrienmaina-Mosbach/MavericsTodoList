@@ -23,16 +23,18 @@ jobs:
         with:
           node-version: '22.x' # Ensure this matches your desired Node.js version
 
-      - name: npm install, build, and test
+      - name: npm install and build
         run: |
           npm install
           npm run build --if-present
-          npm run test --if-present
-        working-directory: toDoList # <--- ADDED/CORRECTED THIS LINE
+          # Removed: npm run test --if-present, as it was causing the "no test specified" error.
+          # If you want to add tests later, define a proper "test" script in package.json
+          # and then you can re-add this line.
+        working-directory: toDoList # Corrected working directory for npm commands
 
       - name: Zip artifact for deployment
         # This zips the contents of the 'toDoList' directory.
-        run: zip release.zip ./toDoList -r # <--- UPDATED ZIP COMMAND
+        run: zip release.zip ./toDoList -r
         # The working-directory for this step is still the repository root.
         # We specify './toDoList' to ensure only the app's contents are zipped.
 
@@ -61,6 +63,8 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
+          # These secrets must contain valid Service Principal credentials.
+          # The values for these secrets need to be updated in GitHub if they are invalid/expired.
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_851806C4AFE64676851F11720AE85CE8 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_09AB3D1A6F40482DAA4B975932A12754 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C28820D76A8948DBA705C27C20B9D210 }}
