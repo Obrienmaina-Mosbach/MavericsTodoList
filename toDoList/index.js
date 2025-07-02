@@ -1,17 +1,19 @@
 // index.js
 const express = require('express');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+const dotenv = require('dotenv'); // Keep dotenv for local development if you use a .env file
 const methodOverride = require('method-override');
 const path = require('path');
 const fs = require('fs'); // Keep for logger
 
-// Load environment variables from .env file
+// Load environment variables from .env file (primarily for local development)
 dotenv.config();
 
 const Todo = require('./Models/todo'); // Import your Todo Mongoose model
 
 const app = express();
+// Azure App Services will provide a PORT environment variable, usually 8080.
+// Use process.env.PORT or default to 3000 for local development.
 const PORT = process.env.PORT || 3000;
 
 // --- Middlewares ---
@@ -44,8 +46,10 @@ function logger(req, res, next) {
 app.use(logger); // Apply the custom logger middleware to all incoming requests
 
 // --- MongoDB Connection ---
-// Connect to MongoDB using the URI from environment variables or a default local URI
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/todoApp')
+// Connect to MongoDB using the URI from environment variables.
+// Removed the '|| mongodb://localhost:27017/todoApp' fallback.
+// On Azure, process.env.MONGO_URI will be set from Application Settings.
+mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB connected successfully!'))
     .catch(err => console.error('MongoDB connection error:', err));
 
