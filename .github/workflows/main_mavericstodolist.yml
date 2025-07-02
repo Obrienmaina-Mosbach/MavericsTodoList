@@ -24,19 +24,22 @@ jobs:
           node-version: '22.x' # Ensure this matches your desired Node.js version
 
       - name: npm install and build
+        # Run npm commands from the root of the repository.
+        # The 'package.json' must be in the 'toDoList' subfolder.
+        # We will adjust the zip step to handle this.
         run: |
-          npm install
-          npm run build --if-present
-          # Removed: npm run test --if-present, as it was causing the "no test specified" error.
-          # If you want to add tests later, define a proper "test" script in package.json
-          # and then you can re-add this line.
-        working-directory: toDoList # Corrected working directory for npm commands
+          npm install --prefix toDoList # Install dependencies within toDoList
+          npm run build --if-present --prefix toDoList # Run build within toDoList
+        # Removed working-directory: toDoList from here as --prefix handles it
 
       - name: Zip artifact for deployment
-        # This zips the contents of the 'toDoList' directory.
-        run: zip release.zip ./toDoList -r
-        # The working-directory for this step is still the repository root.
-        # We specify './toDoList' to ensure only the app's contents are zipped.
+        # This zips the CONTENTS of the 'toDoList' directory, not the directory itself.
+        # This ensures that when unzipped on Azure, index.js is at /home/site/wwwroot.
+        run: |
+          cd toDoList # Change into the toDoList directory
+          zip -r ../release.zip ./* # Zip its contents to the parent directory
+        # The working-directory for this step is implicitly the repository root,
+        # but we use 'cd toDoList' to perform the zip from within the app's folder.
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -58,13 +61,12 @@ jobs:
           name: node-app
 
       - name: Unzip artifact for deployment
+        # This unzips the 'release.zip' into the current working directory of the deploy job (/home/site/wwwroot).
         run: unzip release.zip
 
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          # These secrets must contain valid Service Principal credentials.
-          # The values for these secrets need to be updated in GitHub if they are invalid/expired.
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_851806C4AFE64676851F11720AE85CE8 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_09AB3D1A6F40482DAA4B975932A12754 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_C28820D76A8948DBA705C27C20B9D210 }}
