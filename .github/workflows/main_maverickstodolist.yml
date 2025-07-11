@@ -73,4 +73,3 @@ jobs:
           slot-name: 'Production' # Or 'staging' if you use deployment slots
           # Specify that the package to deploy is the 'toDoList' folder within the unzipped artifact.
           package: 'toDoList' # <--- IMPORTANT CHANGE HERE
-
